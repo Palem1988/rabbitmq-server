@@ -6,7 +6,6 @@ setup(#{nodename := Node, nodename_type := NameType} = Context) ->
     rabbit_log_prelaunch:debug(""),
     rabbit_log_prelaunch:debug("== Erlang distribution =="),
     rabbit_log_prelaunch:debug("Node name: ~s (type: ~s)", [Node, NameType]),
-    stop_mnesia(),
     ok = rabbit_nodes_common:ensure_epmd(),
     ok = dist_port_range_check(Context),
     ok = dist_port_use_check(Context),
@@ -14,17 +13,6 @@ setup(#{nodename := Node, nodename_type := NameType} = Context) ->
 
     ok = do_setup(Context),
     ok.
-
-stop_mnesia() ->
-    %% Stop Mnesia now. It is started because `rabbit` depends on it
-    %% (and this `rabbitmq_prelaunch` too). But because distribution
-    %% is not configured yet at the time it is started, it is
-    %% non-functionnal. We can stop it now, setup distribution and
-    %% `rabbit` will take care of starting it again.
-    %%
-    %% TODO: Move to distribution setup.
-    rabbit_log_prelaunch:debug("Stopping Mnesia to setup distribution"),
-    mnesia:stop().
 
 do_setup(#{nodename := Node, nodename_type := NameType}) ->
     case application:get_env(kernel, net_ticktime) of

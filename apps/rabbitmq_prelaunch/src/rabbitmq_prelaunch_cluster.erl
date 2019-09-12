@@ -7,9 +7,9 @@ setup(Context) ->
     rabbit_log_prelaunch:debug("== Clustering =="),
     rabbit_log_prelaunch:debug("Preparing cluster status files"),
     rabbit_node_monitor:prepare_cluster_status_files(),
-    rabbit_log_prelaunch:debug("Upgrading Mnesia schema"),
     case Context of
         #{initial_pass := true} ->
+            rabbit_log_prelaunch:debug("Upgrading Mnesia schema"),
             ok = rabbit_upgrade:maybe_upgrade_mnesia();
         _ ->
             ok

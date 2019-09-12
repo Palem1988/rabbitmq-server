@@ -48,6 +48,8 @@ run(nonode@nohost) ->
 
     %% If one step fails, we remove the PID file and return the error.
     try
+        stop_mnesia(),
+
         %% 2. Feature flags registry
         ok = rabbitmq_prelaunch_feature_flags:setup(Context),
 
@@ -86,6 +88,8 @@ run(_) ->
     rabbit_env:log_context(Context),
 
     try
+        stop_mnesia(),
+
         %% 1. Feature flags registry
         ok = rabbitmq_prelaunch_feature_flags:setup(Context),
 
@@ -114,6 +118,18 @@ get_context() ->
         {ok, Context} -> Context;
         undefined     -> undefined
     end.
+
+stop_mnesia() ->
+    %% Stop Mnesia now. It is started because `rabbit` depends on it
+    %% (and this `rabbitmq_prelaunch` too). But because distribution
+    %% is not configured yet at the time it is started, it is
+    %% non-functionnal. We can stop it now, setup distribution and
+    %% `rabbit` will take care of starting it again.
+    %%
+    %% Having Mnesia started also messes with cluster consistency
+    %% checks.
+    rabbit_log_prelaunch:debug("Ensuring Mnesia is stopped"),
+    mnesia:stop().
 
 setup_shutdown_func(Context) ->
     ThisMod = ?MODULE,
